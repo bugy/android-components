@@ -396,6 +396,11 @@ public class FactoryBasedAdapter<T>
         for (Row<T> row : rows) {
             row.setSelected(selected);
             fireSelectionChanged(item, selected);
+
+            final int position = shownRows.indexOf(row);
+            if (position >= 0) {
+                notifyItemChanged(position);
+            }
         }
     }
 
