@@ -3,6 +3,8 @@ package net.buggy.components;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
@@ -97,6 +99,15 @@ public class ViewUtils {
             view.setBackground(background);
         } else {
             view.setBackgroundDrawable(background);
+        }
+    }
+
+    public static String getVersion(Activity activity) {
+        try {
+            PackageInfo pInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            return pInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }
