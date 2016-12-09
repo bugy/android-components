@@ -367,7 +367,7 @@ public class FactoryBasedAdapter<T>
         List<T> result = new ArrayList<>();
 
         for (Row<T> row : rows) {
-            if (row.isSelected()) {
+            if ((row.isSelected() && (row.isEnabled()))) {
                 result.add(row.getData());
             }
         }
@@ -394,7 +394,12 @@ public class FactoryBasedAdapter<T>
     private void setItemSelected(T item, boolean selected) {
         final List<Row<T>> rows = findRows(item);
         for (Row<T> row : rows) {
+            if (selected && !row.isEnabled()) {
+                continue;
+            }
+
             row.setSelected(selected);
+
             fireSelectionChanged(item, selected);
 
             final int position = shownRows.indexOf(row);
@@ -406,8 +411,25 @@ public class FactoryBasedAdapter<T>
 
     public void disableItem(T item) {
         final List<Row<T>> itemRows = findRows(item);
+        final List<Integer> changedPositions = new ArrayList<>();
+
         for (Row<T> row : itemRows) {
             row.setEnabled(false);
+
+            if (row.isSelected()) {
+                row.setSelected(false);
+
+                fireSelectionChanged(item, false);
+            }
+
+            final int index = shownRows.indexOf(row);
+            if (index >= 0) {
+                changedPositions.add(index);
+            }
+        }
+
+        for (Integer position : changedPositions) {
+            notifyItemChanged(position);
         }
     }
 
