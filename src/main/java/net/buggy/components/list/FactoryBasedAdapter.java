@@ -11,6 +11,7 @@ import com.google.common.collect.Collections2;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,8 +46,23 @@ public class FactoryBasedAdapter<T>
         setHasStableIds(true);
     }
 
-    public void setSorter(Comparator<T> sorter) {
+    public void setSorter(final Comparator<T> sorter) {
         this.sorter = sorter;
+
+        if (sorter != null) {
+            Collections.sort(rows, new Comparator<Row<T>>() {
+                @Override
+                public int compare(Row<T> o1, Row<T> o2) {
+                    return sorter.compare(o1.getData(), o2.getData());
+                }
+            });
+
+            applyFilter();
+
+            if (!shownRows.isEmpty()) {
+                notifyItemRangeChanged(0, shownRows.size());
+            }
+        }
     }
 
     public void setSelectionMode(SelectionMode selectionMode) {
