@@ -2,9 +2,14 @@ package net.buggy.components;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
@@ -109,5 +114,17 @@ public class ViewUtils {
         } catch (PackageManager.NameNotFoundException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    public static void showStyled(AlertDialog dialog) {
+        dialog.show();
+
+        final Resources.Theme theme = dialog.getContext().getTheme();
+        final TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorAccent});
+        final int colorAccent = typedArray.getColor(0, Color.BLACK);
+        typedArray.recycle();
+
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(colorAccent);
     }
 }
