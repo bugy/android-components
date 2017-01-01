@@ -11,17 +11,24 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Rect;
 import android.graphics.Shader;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+
+import static android.view.inputmethod.InputMethodManager.HIDE_IMPLICIT_ONLY;
+import static android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS;
 
 public class ViewUtils {
 
@@ -45,11 +52,12 @@ public class ViewUtils {
         return result;
     }
 
-    public static void hideSoftKeyboard(Activity activity, View view) {
+    public static void hideSoftKeyboard(View view) {
         InputMethodManager inputMethodManager =
-                (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
 
-        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(),
+                HIDE_NOT_ALWAYS & HIDE_IMPLICIT_ONLY);
     }
 
     @SuppressWarnings("deprecation")
@@ -126,5 +134,48 @@ public class ViewUtils {
 
         dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(colorAccent);
+    }
+
+    public static void makeHintItalic(final EditText editText) {
+        final Typeface originalTypeface = editText.getTypeface();
+
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateHintStyle(s, editText, originalTypeface);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        updateHintStyle(editText.getText(), editText, originalTypeface);
+    }
+
+    private static void updateHintStyle(CharSequence text, EditText editText, Typeface originalTypeface) {
+        if (text.length() == 0) {
+            editText.setTypeface(originalTypeface, Typeface.ITALIC);
+        } else {
+            editText.setTypeface(originalTypeface, Typeface.NORMAL);
+        }
+    }
+
+    public static Rect getLocationOnScreen(View view) {
+        Rect mRect = new Rect();
+        int[] location = new int[2];
+
+        view.getLocationOnScreen(location);
+
+        mRect.left = location[0];
+        mRect.top = location[1];
+        mRect.right = location[0] + view.getWidth();
+        mRect.bottom = location[1] + view.getHeight();
+
+        return mRect;
     }
 }

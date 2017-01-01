@@ -22,7 +22,7 @@ import net.buggy.components.ViewUtils;
 import java.util.Arrays;
 
 
-public class MenuCellFactory implements CellFactory<MenuCellFactory.Item, LinearLayout> {
+public class MenuCellFactory extends CellFactory<MenuCellFactory.Item, LinearLayout> {
 
     private final int pressedColor;
 
@@ -42,7 +42,12 @@ public class MenuCellFactory implements CellFactory<MenuCellFactory.Item, Linear
     }
 
     @Override
-    public void fillCell(Item value, final LinearLayout view, ChangeListener<Item> listener, boolean selected, boolean enabled) {
+    public void fillCell(
+            Cell<Item> cell,
+            LinearLayout view,
+            boolean newCell, ChangeListener<Item> listener) {
+        final Item item = cell.getData();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final RippleDrawable drawable = getPressedRippleDrawable(pressedColor);
             ViewUtils.setBackground(view, drawable);
@@ -51,7 +56,7 @@ public class MenuCellFactory implements CellFactory<MenuCellFactory.Item, Linear
             ViewUtils.setBackground(view, stateListDrawable);
         }
 
-        final Drawable icon = value.getIcon();
+        final Drawable icon = item.getIcon();
 
         final ImageView iconView = (ImageView) view.findViewById(R.id.menu_item_icon);
         if (icon != null) {
@@ -60,7 +65,7 @@ public class MenuCellFactory implements CellFactory<MenuCellFactory.Item, Linear
             iconView.setAlpha(0.4f);
         }
 
-        final String text = value.getText();
+        final String text = item.getText();
         final TextView itemTextView = (TextView) view.findViewById(R.id.menu_item_text);
         itemTextView.setText(text);
     }

@@ -256,7 +256,7 @@ public class SwipeToRemoveHandler extends ItemTouchHelper.SimpleCallback {
         public void askConfirmation(String text) {
             activeRemovedCellFactory.setConfirmation(text);
 
-            getAdapter().notifyItemChanged(viewPosition);
+            getAdapter().notifyItemChanged(viewPosition, FactoryBasedAdapter.ChangeType.DATA);
         }
 
         public void cancel() {
@@ -267,7 +267,7 @@ public class SwipeToRemoveHandler extends ItemTouchHelper.SimpleCallback {
         }
     }
 
-    public final static class RemovedCellFactory implements CellFactory<Object, LinearLayout> {
+    public final static class RemovedCellFactory extends CellFactory<Object, LinearLayout> {
         private final int backgroundColor;
         private final Integer foregroundColor;
         private final int itemHeight;
@@ -305,7 +305,8 @@ public class SwipeToRemoveHandler extends ItemTouchHelper.SimpleCallback {
         }
 
         @Override
-        public void fillCell(Object value, LinearLayout view, ChangeListener<Object> listener, boolean selected, boolean enabled) {
+        public void fillCell(Cell<Object> cell, LinearLayout view, boolean newCell, ChangeListener<Object> listener) {
+
             if (confirmationActive) {
                 final TextView confirmationTextView = (TextView) view.findViewById(R.id.confirmation_item_text_field);
                 final ImageButton confirmButton = (ImageButton) view.findViewById(R.id.confirmation_item_confirm_button);

@@ -4,13 +4,24 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-public interface CellFactory<T, V extends View> {
+public abstract class CellFactory<T, V extends View> {
 
-    V createEmptyCell(Context context, ViewGroup parent);
+    public abstract V createEmptyCell(Context context, ViewGroup parent);
 
-    void fillCell(T value, V view, ChangeListener<T> listener, boolean selected, boolean enabled);
+    public abstract void fillCell(
+            Cell<T> cell,
+            V view,
+            boolean newCell,
+            ChangeListener<T> listener);
 
-    interface ChangeListener<T> {
-        void onChange(T newValue);
+    public void clearCell(Cell<T> cell, V itemView) {
+
     }
+
+    public interface ChangeListener<T> {
+        void onChange(T newValue);
+
+        void setSelected(boolean selected);
+    }
+
 }

@@ -13,7 +13,7 @@ import net.buggy.components.ViewUtils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class TextCellFactory<T> implements CellFactory<T, TextView> {
+public class TextCellFactory<T> extends CellFactory<T, TextView> {
 
     public enum HorizontalAlignment {LEFT, CENTER, RIGHT}
 
@@ -72,18 +72,19 @@ public class TextCellFactory<T> implements CellFactory<T, TextView> {
     }
 
     @Override
-    public void fillCell(T value, TextView view, ChangeListener<T> listener, boolean selected, boolean enabled) {
-        if (value != null) {
-            view.setText(String.valueOf(value));
+    public void fillCell(Cell<T> cell, TextView view, boolean newCell, ChangeListener<T> listener) {
+        final T data = cell.getData();
+        if (data != null) {
+            view.setText(String.valueOf(data));
         }
 
-        if (!enabled) {
+        if (!cell.isEnabled()) {
             setSelected(view, false);
             setDisabled(view, true);
         } else {
             setDisabled(view, false);
 
-            setSelected(view, selected);
+            setSelected(view, cell.isSelected());
         }
     }
 

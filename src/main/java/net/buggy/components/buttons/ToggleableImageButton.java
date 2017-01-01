@@ -44,7 +44,6 @@ public class ToggleableImageButton extends ImageButton {
                     setPressed(!pressed);
 
                     performClick();
-
                 }
 
                 return true;

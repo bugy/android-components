@@ -13,15 +13,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FactoryBasedAdapter<T>
         extends RecyclerView.Adapter<FactoryBasedAdapter.ViewHolder> {
 
     public enum SelectionMode {NONE, SINGLE, MULTI}
+
+    public enum ChangeType {SELECTION, DATA, ENABLE}
 
     private final static int MAIN_VIEW_TYPE = 0;
 
@@ -40,7 +40,7 @@ public class FactoryBasedAdapter<T>
 
     private Comparator<T> sorter;
 
-    public FactoryBasedAdapter(CellFactory<T, ? extends View> defaultFactory) {
+    public <V extends View> FactoryBasedAdapter(CellFactory<T, V> defaultFactory) {
         this.defaultFactory = (CellFactory<T, View>) defaultFactory;
 
         setHasStableIds(true);
@@ -93,9 +93,9 @@ public class FactoryBasedAdapter<T>
 
         final CellFactory<T, View> cellFactory = (customFactory != null) ? customFactory : defaultFactory;
 
-        final View cell = cellFactory.createEmptyCell(parent.getContext(), parent);
+        final View view = cellFactory.createEmptyCell(parent.getContext(), parent);
 
-        return new ViewHolder(cell);
+        return new ViewHolder(view, cellFactory);
     }
 
 
@@ -109,51 +109,44 @@ public class FactoryBasedAdapter<T>
     private void toggleSelected(int viewPosition) {
         final Row<T> row = shownRows.get(viewPosition);
 
-        Set<Row<T>> changedRows = new LinkedHashSet<>();
-        changedRows.add(row);
-
-        row.setSelected(!row.isSelected());
-        notifyItemChanged(viewPosition);
-
-        if (row.isSelected() && (selectionMode == SelectionMode.SINGLE)) {
-            for (Row<T> anotherRow : rows) {
-                if (anotherRow.equals(row)) {
-                    continue;
-                }
-
-                if (!anotherRow.isSelected()) {
-                    continue;
-                }
-
-                anotherRow.setSelected(false);
-
-                final int anotherRowIndex = shownRows.indexOf(anotherRow);
-                if (anotherRowIndex >= 0) {
-                    notifyItemChanged(anotherRowIndex);
-                }
-            }
-        }
-
-        for (Row<T> changedRow : changedRows) {
-            fireSelectionChanged(changedRow.getData(), changedRow.isSelected());
-        }
+        setItemSelected(row.getData(), !row.isSelected());
     }
 
     @Override
     public void onBindViewHolder(final FactoryBasedAdapter.ViewHolder holder, final int viewPosition) {
         final Row<T> row = shownRows.get(viewPosition);
-        final T value = row.getData();
-        final View view = holder.getView();
+        final View view = holder.itemView;
 
-        final CellFactory<T, View> customFactory = getCustomFactory(viewPosition);
-        final CellFactory<T, View> cellFactory = (customFactory != null) ? customFactory : defaultFactory;
+        final Cell<T> cell = row.getCell();
 
-        cellFactory.fillCell(value, view, new CellFactory.ChangeListener<T>() {
-            @Override
-            public void onChange(T newValue) {
-                fireDataChanged(newValue);
-            }
-        }, row.isSelected(), row.isEnabled());
+        boolean newCell = !Objects.equal(cell, holder.getCell());
+        if (newCell) {
+            cell.resetViewState();
+            holder.setCell(cell);
+        }
+
+        final CellFactory<T, View> factory = holder.getFactory();
+        factory.fillCell(cell, view, newCell,
+                new CellFactory.ChangeListener<T>() {
+                    @Override
+                    public void onChange(T newValue) {
+                        for (int i = 0; i < shownRows.size(); i++) {
+                            final Row<T> shownRow = shownRows.get(i);
+
+                            if (Objects.equal(shownRow.getData(), newValue)) {
+                                notifyItemChanged(i, ChangeType.DATA);
+                            }
+                        }
+
+                        fireDataChanged(newValue);
+                    }
+
+                    @Override
+                    public void setSelected(boolean selected) {
+                        setItemSelected(cell.getData(), true);
+                    }
+                }
+        );
 
         if ((selectionMode != SelectionMode.NONE) && (row.isEnabled())) {
             view.setOnClickListener(new View.OnClickListener() {
@@ -165,6 +158,19 @@ public class FactoryBasedAdapter<T>
                 }
             });
         }
+    }
+
+    @Override
+    public void onViewRecycled(ViewHolder holder) {
+        final View itemView = holder.itemView;
+
+        final CellFactory<Object, View> factory = holder.getFactory();
+        final Cell cell = holder.getCell();
+
+        factory.clearCell(cell, itemView);
+
+        cell.resetViewState();
+        holder.setCell(null);
     }
 
     private CellFactory<T, View> getCustomFactory(int viewPosition) {
@@ -345,7 +351,7 @@ public class FactoryBasedAdapter<T>
         }
 
         for (int i = minChangedIndex; i < maxChangedIndex + 1; i++) {
-            notifyItemChanged(i);
+            notifyItemChanged(i, ChangeType.DATA);
         }
 
         fireDataChanged(item);
@@ -408,19 +414,46 @@ public class FactoryBasedAdapter<T>
     }
 
     private void setItemSelected(T item, boolean selected) {
+        if (selected && (selectionMode == SelectionMode.NONE)) {
+            return;
+        }
+
         final List<Row<T>> rows = findRows(item);
         for (Row<T> row : rows) {
             if (selected && !row.isEnabled()) {
                 continue;
             }
 
-            row.setSelected(selected);
+            if (row.isSelected() == selected) {
+                continue;
+            }
 
-            fireSelectionChanged(item, selected);
+            row.setSelected(selected);
 
             final int position = shownRows.indexOf(row);
             if (position >= 0) {
-                notifyItemChanged(position);
+                notifyItemChanged(position, ChangeType.SELECTION);
+            }
+
+            fireSelectionChanged(item, selected);
+        }
+
+        if (selected && (selectionMode == SelectionMode.SINGLE)) {
+            for (Row<T> anotherRow : this.rows) {
+                if (rows.contains(anotherRow)) {
+                    continue;
+                }
+
+                if (!anotherRow.isSelected()) {
+                    continue;
+                }
+
+                anotherRow.setSelected(false);
+
+                final int anotherRowIndex = shownRows.indexOf(anotherRow);
+                if (anotherRowIndex >= 0) {
+                    notifyItemChanged(anotherRowIndex, ChangeType.SELECTION);
+                }
             }
         }
     }
@@ -445,7 +478,7 @@ public class FactoryBasedAdapter<T>
         }
 
         for (Integer position : changedPositions) {
-            notifyItemChanged(position);
+            notifyItemChanged(position, ChangeType.ENABLE);
         }
     }
 
@@ -459,25 +492,25 @@ public class FactoryBasedAdapter<T>
         return result;
     }
 
-    private void fireDataAdded(T item) {
+    private void fireDataAdded(final T item) {
         for (DataListener<T> listener : dataListeners) {
             listener.added(item);
         }
     }
 
-    private void fireDataChanged(T changedItem) {
+    private void fireDataChanged(final T changedItem) {
         for (DataListener<T> listener : dataListeners) {
             listener.changed(changedItem);
         }
     }
 
-    private void fireDataRemoved(T item) {
+    private void fireDataRemoved(final T item) {
         for (DataListener<T> listener : dataListeners) {
             listener.removed(item);
         }
     }
 
-    private void fireSelectionChanged(T item, boolean selected) {
+    private void fireSelectionChanged(final T item, final boolean selected) {
         for (SelectionListener<T> listener : selectionListeners) {
             listener.selectionChanged(item, selected);
         }
@@ -515,46 +548,48 @@ public class FactoryBasedAdapter<T>
 
         private static long idCounter = 1;
 
-        private T data;
+        private final Cell<T> cell;
         private CellFactory<T, View> customCellFactory;
-        private boolean selected = false;
-        private boolean enabled = true;
         private final long id = idCounter++;
 
         public Row(T data) {
-            this.data = data;
+            this.cell = new Cell<>(data);
+        }
+
+        public Cell<T> getCell() {
+            return cell;
         }
 
         public void setData(T data) {
-            this.data = data;
+            cell.setData(data);
         }
 
         public T getData() {
-            return data;
+            return cell.getData();
         }
 
         public CellFactory<T, View> getCustomCellFactory() {
             return customCellFactory;
         }
 
-        public void setCustomCellFactory(CellFactory<T, ? extends View> customCellFactory) {
+        public <V extends View> void setCustomCellFactory(CellFactory<T, V> customCellFactory) {
             this.customCellFactory = (CellFactory<T, View>) customCellFactory;
         }
 
         public boolean isSelected() {
-            return selected;
+            return cell.isSelected();
         }
 
         public void setSelected(boolean selected) {
-            this.selected = selected;
+            cell.setSelected(selected);
         }
 
         public boolean isEnabled() {
-            return enabled;
+            return cell.isEnabled();
         }
 
         public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
+            cell.setEnabled(enabled);
         }
 
         public long getId() {
@@ -562,18 +597,25 @@ public class FactoryBasedAdapter<T>
         }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private Cell cell;
+        private final CellFactory<Object, View> factory;
 
-        private final View view;
-
-        ViewHolder(View view) {
+        private <T> ViewHolder(View view, CellFactory<T, View> factory) {
             super(view);
-
-            this.view = view;
+            this.factory = (CellFactory<Object, View>) factory;
         }
 
-        public View getView() {
-            return view;
+        public <T> CellFactory<T, View> getFactory() {
+            return (CellFactory<T, View>) factory;
+        }
+
+        public Cell getCell() {
+            return cell;
+        }
+
+        public void setCell(Cell cell) {
+            this.cell = cell;
         }
     }
 
