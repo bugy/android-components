@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
-import static android.view.inputmethod.InputMethodManager.HIDE_IMPLICIT_ONLY;
 import static android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS;
 
 public class ViewUtils {
@@ -56,8 +55,7 @@ public class ViewUtils {
         InputMethodManager inputMethodManager =
                 (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
 
-        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(),
-                HIDE_NOT_ALWAYS & HIDE_IMPLICIT_ONLY);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), HIDE_NOT_ALWAYS);
     }
 
     @SuppressWarnings("deprecation")
