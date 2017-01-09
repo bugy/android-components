@@ -27,6 +27,9 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import static android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS;
 
 public class ViewUtils {
@@ -175,5 +178,25 @@ public class ViewUtils {
         mRect.bottom = location[1] + view.getHeight();
 
         return mRect;
+    }
+
+    public static void addFont(Context context, String familyName, String fontFilename) {
+
+        final Typeface customFontTypeface = Typeface.createFromAsset(context.getAssets(), fontFilename);
+
+        try {
+            final Field staticField = Typeface.class
+                    .getDeclaredField("sSystemFontMap");
+            staticField.setAccessible(true);
+
+            Map<String, Typeface> map = (Map<String, Typeface>) staticField.get(null);
+            map.put(familyName.toLowerCase(), customFontTypeface);
+
+            staticField.set(null, map);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }
