@@ -24,6 +24,7 @@ import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -198,5 +199,30 @@ public class ViewUtils {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    public static void setLeftMargin(View view, int marginPx) {
+        final ViewGroup.MarginLayoutParams layoutParams =
+                (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        layoutParams.leftMargin = marginPx;
+        view.setLayoutParams(layoutParams);
+    }
+
+    public static void setHeight(View view, int heightPx) {
+        final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.height = heightPx;
+        view.setLayoutParams(layoutParams);
+    }
+
+    public static void setHeightDp(View view, int heightDp) {
+        final int height = ViewUtils.dpToPx(heightDp, view.getContext());
+        setHeight(view, height);
+    }
+
+    public static void setLeftMarginDp(
+            int marginDp,
+            ViewGroup.MarginLayoutParams layoutParams,
+            Context context) {
+        layoutParams.leftMargin = dpToPx(marginDp, context);
     }
 }
