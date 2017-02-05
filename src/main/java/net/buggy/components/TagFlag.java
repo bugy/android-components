@@ -16,6 +16,7 @@ public class TagFlag extends View {
     private static final int CUT_HEIGHT = 5;
 
     private static final int DEF_COLOR = Color.BLACK;
+    public static final int DEF_BORDER_COLOR = Color.BLACK;
 
     private int color;
     private int cutHeight;
@@ -65,7 +66,7 @@ public class TagFlag extends View {
 
         strokePaint = new Paint();
         strokePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        strokePaint.setColor(Color.BLACK);
+        strokePaint.setColor(DEF_BORDER_COLOR);
         strokePaint.setStyle(Paint.Style.STROKE);
     }
 
@@ -113,9 +114,21 @@ public class TagFlag extends View {
         polygon.lineTo(maxX, minY);
     }
 
+    public void setBorderColor(int color) {
+        strokePaint.setColor(color);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawPath(polygon, fillPaint);
         canvas.drawPath(polygon, strokePaint);
+    }
+
+    public int getCutHeight() {
+        return cutHeight;
+    }
+
+    public void setCutHeight(int cutHeight) {
+        this.cutHeight = cutHeight;
     }
 }

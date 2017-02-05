@@ -18,7 +18,8 @@ public class TagFlagContainer extends LinearLayout {
     private final SortedMultiset<Integer> colors = TreeMultiset.create();
 
     private Integer tagWidth;
-    private Integer tagLeftMargin;
+    private Integer tagMargin;
+    private Integer flagBorderColor = TagFlag.DEF_BORDER_COLOR;
 
     public TagFlagContainer(Context context) {
         super(context);
@@ -48,8 +49,25 @@ public class TagFlagContainer extends LinearLayout {
     private void init() {
         final Context context = getContext();
 
-        tagWidth = ViewUtils.dpToPx(9, context);
-        tagLeftMargin = ViewUtils.dpToPx(10, context);
+        tagWidth = ViewUtils.dpToPx(8, context);
+        tagMargin = ViewUtils.dpToPx(8, context);
+    }
+
+    public void setTagWidth(Integer tagWidth) {
+        this.tagWidth = tagWidth;
+    }
+
+    public void setTagMargin(Integer tagLeftMargin) {
+        this.tagMargin = tagLeftMargin;
+    }
+
+    public void setFlagBorderColor(Integer flagBorderColor) {
+        this.flagBorderColor = flagBorderColor;
+
+        for (int i = 0; i < getChildCount(); i++) {
+            final TagFlag tagFlag = (TagFlag) getChildAt(i);
+            tagFlag.setBorderColor(flagBorderColor);
+        }
     }
 
     public void addColor(Integer color) {
@@ -92,10 +110,11 @@ public class TagFlagContainer extends LinearLayout {
     private TagFlag createTagFlag() {
         final LinearLayout.LayoutParams tagLayoutParams = new LinearLayout.LayoutParams(
                 tagWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-        tagLayoutParams.setMargins(tagLeftMargin, 0, 0, 0);
+        tagLayoutParams.setMargins(tagMargin, 0, 0, 0);
 
         final TagFlag tagFlag = new TagFlag(getContext());
         tagFlag.setLayoutParams(tagLayoutParams);
+        tagFlag.setBorderColor(flagBorderColor);
 
         return tagFlag;
     }
