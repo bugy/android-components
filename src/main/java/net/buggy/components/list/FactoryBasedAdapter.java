@@ -21,7 +21,7 @@ public class FactoryBasedAdapter<T>
 
     public enum SelectionMode {NONE, SINGLE, MULTI}
 
-    public enum ChangeType {SELECTION, DATA, ENABLE}
+    public enum ChangeType {SELECTION, DATA, ENABLE, REDRAW}
 
     private final static int MAIN_VIEW_TYPE = 0;
 
@@ -34,6 +34,7 @@ public class FactoryBasedAdapter<T>
 
     private final List<DataListener<T>> dataListeners = new CopyOnWriteArrayList<>();
     private final List<SelectionListener<T>> selectionListeners = new CopyOnWriteArrayList<>();
+    private final List<ClickListener<T>> clickListeners = new CopyOnWriteArrayList<>();
     private Predicate<T> filter = null;
 
     private SelectionMode selectionMode = SelectionMode.NONE;
@@ -125,8 +126,10 @@ public class FactoryBasedAdapter<T>
             holder.setCell(cell);
         }
 
+        final CellContext<T> cellContext = createCellContext(viewPosition, cell, newCell);
+
         final CellFactory<T, View> factory = holder.getFactory();
-        factory.fillCell(cell, view, newCell,
+        factory.fillCell(cell, view, cellContext,
                 new CellFactory.ChangeListener<T>() {
                     @Override
                     public void onChange(T newValue) {
@@ -143,21 +146,55 @@ public class FactoryBasedAdapter<T>
 
                     @Override
                     public void setSelected(boolean selected) {
-                        setItemSelected(cell.getData(), true);
+                        setItemSelected(cell.getData(), selected);
+                    }
+
+                    @Override
+                    public void redraw(Cell<T> cell) {
+                        for (int i = 0; i < shownRows.size(); i++) {
+                            final Row<T> row = shownRows.get(i);
+                            if (Objects.equal(row.getCell(), cell)) {
+                                notifyItemChanged(i, ChangeType.REDRAW);
+                            }
+                        }
                     }
                 }
         );
 
-        if ((selectionMode != SelectionMode.NONE) && (row.isEnabled())) {
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!clickListeners.isEmpty()) {
+                    for (ClickListener<T> listener : clickListeners) {
+                        listener.itemClicked(row.getData());
+                    }
+                    return;
+                }
+
+                if ((selectionMode != SelectionMode.NONE) && (row.isEnabled())) {
                     final int viewPosition = holder.getAdapterPosition();
 
                     toggleSelected(viewPosition);
                 }
-            });
+            }
+        });
+    }
+
+    private CellContext<T> createCellContext(int viewPosition, Cell<T> cell, boolean newCell) {
+        Cell<T> prevCell;
+        if (viewPosition == 0) {
+            prevCell = null;
+        } else {
+            prevCell = shownRows.get(viewPosition - 1).getCell();
         }
+
+        Cell<T> nextCell;
+        if (viewPosition == (shownRows.size() - 1)) {
+            nextCell = null;
+        } else {
+            nextCell = shownRows.get(viewPosition + 1).getCell();
+        }
+        return new CellContext<>(cell, nextCell, prevCell, newCell);
     }
 
     @Override
@@ -165,7 +202,7 @@ public class FactoryBasedAdapter<T>
         final View itemView = holder.itemView;
 
         final CellFactory<Object, View> factory = holder.getFactory();
-        final Cell cell = holder.getCell();
+        final Cell<Object> cell = holder.getCell();
 
         factory.clearCell(cell, itemView);
 
@@ -283,6 +320,13 @@ public class FactoryBasedAdapter<T>
         final int viewIndex = rows.indexOf(row);
         if (viewIndex >= 0) {
             notifyItemInserted(modelPosition);
+            if (viewIndex > 0) {
+                notifyItemChanged(viewIndex - 1, ChangeType.REDRAW);
+            }
+
+            if (viewIndex < (shownRows.size() - 1)) {
+                notifyItemChanged(viewIndex + 1, ChangeType.REDRAW);
+            }
         }
 
         fireDataAdded(item);
@@ -610,8 +654,8 @@ public class FactoryBasedAdapter<T>
             return (CellFactory<T, View>) factory;
         }
 
-        public Cell getCell() {
-            return cell;
+        public <T> Cell<T> getCell() {
+            return (Cell<T>) cell;
         }
 
         public void setCell(Cell cell) {
@@ -629,5 +673,13 @@ public class FactoryBasedAdapter<T>
 
     public interface SelectionListener<T> {
         void selectionChanged(T item, boolean selected);
+    }
+
+    public interface ClickListener<T> {
+        void itemClicked(T item);
+    }
+
+    public void addClickListener(ClickListener<T> clickListener) {
+        clickListeners.add(clickListener);
     }
 }

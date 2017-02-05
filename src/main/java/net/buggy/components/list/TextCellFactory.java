@@ -72,7 +72,7 @@ public class TextCellFactory<T> extends CellFactory<T, TextView> {
     }
 
     @Override
-    public void fillCell(Cell<T> cell, TextView view, boolean newCell, ChangeListener<T> listener) {
+    public void fillCell(Cell<T> cell, TextView view, CellContext<T> cellContext, ChangeListener<T> listener) {
         final T data = cell.getData();
         if (data != null) {
             view.setText(String.valueOf(data));

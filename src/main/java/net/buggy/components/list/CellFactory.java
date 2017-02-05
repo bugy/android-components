@@ -11,7 +11,7 @@ public abstract class CellFactory<T, V extends View> {
     public abstract void fillCell(
             Cell<T> cell,
             V view,
-            boolean newCell,
+            CellContext<T> cellContext,
             ChangeListener<T> listener);
 
     public void clearCell(Cell<T> cell, V itemView) {
@@ -22,6 +22,8 @@ public abstract class CellFactory<T, V extends View> {
         void onChange(T newValue);
 
         void setSelected(boolean selected);
+
+        void redraw(Cell<T> cell);
     }
 
 }

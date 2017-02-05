@@ -305,7 +305,7 @@ public class SwipeToRemoveHandler extends ItemTouchHelper.SimpleCallback {
         }
 
         @Override
-        public void fillCell(Cell<Object> cell, LinearLayout view, boolean newCell, ChangeListener<Object> listener) {
+        public void fillCell(Cell<Object> cell, LinearLayout view, CellContext<Object> cellContext, ChangeListener<Object> listener) {
 
             if (confirmationActive) {
                 final TextView confirmationTextView = (TextView) view.findViewById(R.id.confirmation_item_text_field);

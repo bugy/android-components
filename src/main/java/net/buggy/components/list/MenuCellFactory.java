@@ -45,7 +45,7 @@ public class MenuCellFactory extends CellFactory<MenuCellFactory.Item, LinearLay
     public void fillCell(
             Cell<Item> cell,
             LinearLayout view,
-            boolean newCell, ChangeListener<Item> listener) {
+            CellContext<Item> cellContext, ChangeListener<Item> listener) {
         final Item item = cell.getData();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
