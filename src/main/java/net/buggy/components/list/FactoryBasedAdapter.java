@@ -35,6 +35,7 @@ public class FactoryBasedAdapter<T>
     private final List<DataListener<T>> dataListeners = new CopyOnWriteArrayList<>();
     private final List<SelectionListener<T>> selectionListeners = new CopyOnWriteArrayList<>();
     private final List<ClickListener<T>> clickListeners = new CopyOnWriteArrayList<>();
+    private final List<ClickListener<T>> longClickListeners = new CopyOnWriteArrayList<>();
     private Predicate<T> filter = null;
 
     private SelectionMode selectionMode = SelectionMode.NONE;
@@ -176,6 +177,29 @@ public class FactoryBasedAdapter<T>
 
                     toggleSelected(viewPosition);
                 }
+            }
+        });
+
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (!longClickListeners.isEmpty()) {
+                    for (ClickListener<T> listener : longClickListeners) {
+                        listener.itemClicked(row.getData());
+                    }
+
+                    return true;
+                }
+
+                if ((selectionMode != SelectionMode.NONE) && (row.isEnabled())) {
+                    final int viewPosition = holder.getAdapterPosition();
+
+                    toggleSelected(viewPosition);
+
+                    return true;
+                }
+
+                return false;
             }
         });
     }
@@ -320,13 +344,8 @@ public class FactoryBasedAdapter<T>
         final int viewIndex = rows.indexOf(row);
         if (viewIndex >= 0) {
             notifyItemInserted(modelPosition);
-            if (viewIndex > 0) {
-                notifyItemChanged(viewIndex - 1, ChangeType.REDRAW);
-            }
 
-            if (viewIndex < (shownRows.size() - 1)) {
-                notifyItemChanged(viewIndex + 1, ChangeType.REDRAW);
-            }
+            notifyNeighboursRedraw(viewIndex);
         }
 
         fireDataAdded(item);
@@ -477,6 +496,7 @@ public class FactoryBasedAdapter<T>
             final int position = shownRows.indexOf(row);
             if (position >= 0) {
                 notifyItemChanged(position, ChangeType.SELECTION);
+                notifyNeighboursRedraw(position);
             }
 
             fireSelectionChanged(item, selected);
@@ -497,8 +517,19 @@ public class FactoryBasedAdapter<T>
                 final int anotherRowIndex = shownRows.indexOf(anotherRow);
                 if (anotherRowIndex >= 0) {
                     notifyItemChanged(anotherRowIndex, ChangeType.SELECTION);
+                    notifyNeighboursRedraw(anotherRowIndex);
                 }
             }
+        }
+    }
+
+    private void notifyNeighboursRedraw(int rowIndex) {
+        if (rowIndex > 0) {
+            notifyItemChanged(rowIndex - 1, ChangeType.REDRAW);
+        }
+
+        if (rowIndex < (shownRows.size() - 1)) {
+            notifyItemChanged(rowIndex + 1, ChangeType.REDRAW);
         }
     }
 
@@ -681,5 +712,9 @@ public class FactoryBasedAdapter<T>
 
     public void addClickListener(ClickListener<T> clickListener) {
         clickListeners.add(clickListener);
+    }
+
+    public void addLongClickListener(ClickListener<T> clickListener) {
+        longClickListeners.add(clickListener);
     }
 }
