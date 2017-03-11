@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/material_spinner_input_layout">
+
+    <EditText
+        android:id="@+id/material_spinner_text_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableEnd="@drawable/dropdown_arrow"
+        android:drawableRight="@drawable/dropdown_arrow" />
+</android.support.design.widget.TextInputLayout>

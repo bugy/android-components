@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:right="2dp"
+        android:top="1dp"
+        android:left="2dp"
+        android:bottom="3dp">
+        <color android:color="?attr/colorBackgroundFloating" />
+    </item>
+    <item android:drawable="@android:drawable/editbox_dropdown_light_frame" />
+</layer-list>

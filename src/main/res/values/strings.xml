@@ -1,4 +1,5 @@
 <resources>
     <string name="confirmation_item_confirm">Confirm</string>
     <string name="confirmation_item_cancel">Cancel</string>
+    <string name="material_spinner_empty_selection">None</string>
 </resources>

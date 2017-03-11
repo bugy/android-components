@@ -19,14 +19,17 @@ import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
+import android.support.design.widget.TextInputLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -224,5 +227,21 @@ public class ViewUtils {
             ViewGroup.MarginLayoutParams layoutParams,
             Context context) {
         layoutParams.leftMargin = dpToPx(marginDp, context);
+    }
+
+    public static void setTextWithoutAnimation(TextView materialTextView, String text) {
+        ViewParent parent = materialTextView.getParent();
+        while ((parent != null) && (!(parent instanceof TextInputLayout))) {
+            parent = parent.getParent();
+        }
+
+        if (parent instanceof TextInputLayout) {
+            ((TextInputLayout) parent).setHintAnimationEnabled(false);
+            materialTextView.setText(text);
+            ((TextInputLayout) parent).setHintAnimationEnabled(true);
+            return;
+        }
+
+        materialTextView.setText(text);
     }
 }

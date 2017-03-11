@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:right="4dp">
+                <bitmap android:src="@drawable/ic_arrow_drop_down_black_12dp" android:tint="?attr/colorAccent" />
+            </item>
+        </layer-list>
+    </item>
+
+    <item>
+        <layer-list>
+            <item android:right="4dp">
+                <bitmap android:src="@drawable/ic_arrow_drop_down_black_12dp" android:tint="?attr/editTextColor" />
+            </item>
+        </layer-list>
+    </item>
+</selector>
