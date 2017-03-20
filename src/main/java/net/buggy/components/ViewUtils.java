@@ -244,4 +244,23 @@ public class ViewUtils {
 
         materialTextView.setText(text);
     }
+
+    public static int pickFromColorScale(int color1, int color2, float overdueScale) {
+        final int red1 = Color.red(color1);
+        final int blue1 = Color.blue(color1);
+        final int green1 = Color.green(color1);
+
+        final int red2 = Color.red(color2);
+        final int blue2 = Color.blue(color2);
+        final int green2 = Color.green(color2);
+
+        final int red = weightedValue(red1, red2, overdueScale);
+        final int green = weightedValue(green1, green2, overdueScale);
+        final int blue = weightedValue(blue1, blue2, overdueScale);
+        return Color.argb(255, red, green, blue);
+    }
+
+    private static int weightedValue(int value1, int value2, float value2Weight) {
+        return Math.round(value1 * (1f - value2Weight) + value2 * value2Weight);
+    }
 }
