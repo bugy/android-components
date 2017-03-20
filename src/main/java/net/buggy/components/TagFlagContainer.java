@@ -20,6 +20,7 @@ public class TagFlagContainer extends LinearLayout {
     private Integer tagWidth;
     private Integer tagMargin;
     private Integer flagBorderColor = TagFlag.DEF_BORDER_COLOR;
+    private Integer maxCount;
 
     public TagFlagContainer(Context context) {
         super(context);
@@ -86,7 +87,10 @@ public class TagFlagContainer extends LinearLayout {
         this.colors.addAll(colors);
 
         final ArrayList<Integer> colorsList = new ArrayList<>(this.colors);
-        for (int i = 0; i < colorsList.size(); i++) {
+        int colorsCount = maxCount != null
+                ? Math.min(maxCount, colorsList.size())
+                : colorsList.size();
+        for (int i = 0; i < colorsCount; i++) {
             final Integer color = colorsList.get(i);
 
             final TagFlag tagFlag;
@@ -102,8 +106,20 @@ public class TagFlagContainer extends LinearLayout {
             }
         }
 
-        while (getChildCount() > colorsList.size()) {
-            removeViewAt(colorsList.size());
+        removeExcessiveFlags(colorsCount);
+    }
+
+    private void removeExcessiveFlags(int colorsCount) {
+        while (getChildCount() > colorsCount) {
+            removeViewAt(colorsCount);
+        }
+    }
+
+    public void setMaxCount(Integer maxCount) {
+        this.maxCount = maxCount;
+
+        if ((maxCount != null) && (maxCount > getChildCount())) {
+            removeExcessiveFlags(maxCount);
         }
     }
 
