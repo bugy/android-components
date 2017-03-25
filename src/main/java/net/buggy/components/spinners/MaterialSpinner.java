@@ -43,7 +43,7 @@ public class MaterialSpinner<T> extends FrameLayout {
     private FactoryBasedAdapter<T> listAdapter;
     private Function<T, String> stringConverter;
 
-    private String selectNothingString;
+    private String nullString;
 
     private List<T> values = new ArrayList<>();
     private EditText textField;
@@ -74,7 +74,7 @@ public class MaterialSpinner<T> extends FrameLayout {
     }
 
     private void init(final Context context) {
-        selectNothingString = context.getString(R.string.material_spinner_empty_selection);
+        nullString = context.getString(R.string.material_spinner_empty_selection);
 
         final LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -153,7 +153,7 @@ public class MaterialSpinner<T> extends FrameLayout {
 
     private String stringify(T value) {
         if (value == null) {
-            return selectNothingString;
+            return nullString;
         }
 
         if (stringConverter != null) {
@@ -176,6 +176,10 @@ public class MaterialSpinner<T> extends FrameLayout {
 
         listAdapter.clear();
         listAdapter.addAll(this.values);
+    }
+
+    public void setNullString(String nullString) {
+        this.nullString = nullString;
     }
 
     public T getSelectedItem() {
