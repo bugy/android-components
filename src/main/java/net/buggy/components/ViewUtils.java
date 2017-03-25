@@ -4,9 +4,11 @@ package net.buggy.components;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -19,6 +21,7 @@ import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
+import android.os.LocaleList;
 import android.support.design.widget.TextInputLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -32,8 +35,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Map;
 
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS;
 
 public class ViewUtils {
@@ -262,5 +267,31 @@ public class ViewUtils {
 
     private static int weightedValue(int value1, int value2, float value2Weight) {
         return Math.round(value1 * (1f - value2Weight) + value2 * value2Weight);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static ContextWrapper wrap(Context context, Locale locale) {
+        Resources res = context.getResources();
+        Configuration configuration = res.getConfiguration();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            configuration.setLocale(locale);
+
+            LocaleList localeList = new LocaleList(locale);
+            LocaleList.setDefault(localeList);
+            configuration.setLocales(localeList);
+
+            context = context.createConfigurationContext(configuration);
+
+        } else if (Build.VERSION.SDK_INT >= JELLY_BEAN_MR1) {
+            configuration.setLocale(locale);
+            context = context.createConfigurationContext(configuration);
+
+        } else {
+            configuration.locale = locale;
+            res.updateConfiguration(configuration, res.getDisplayMetrics());
+        }
+
+        return new ContextWrapper(context);
     }
 }
