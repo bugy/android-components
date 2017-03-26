@@ -3,7 +3,9 @@ package net.buggy.components;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
@@ -77,9 +79,15 @@ public class TagFlagContainer extends LinearLayout {
         final ArrayList<Integer> colorsList = new ArrayList<>(colors);
         final int newIndex = colorsList.lastIndexOf(color);
 
-        final TagFlag tagFlag = createTagFlag();
+        final TagFlag tagFlag = createTagFlag(newIndex == 0);
         tagFlag.setColor(color);
         addView(tagFlag, newIndex);
+
+        if ((newIndex == 0) && (colors.size() > 1)) {
+            final View previousFirstView = getChildAt(1);
+            final LayoutParams layoutParams = createFlagLayoutParams(false);
+            previousFirstView.setLayoutParams(layoutParams);
+        }
     }
 
     public void setColors(Multiset<Integer> colors) {
@@ -95,7 +103,7 @@ public class TagFlagContainer extends LinearLayout {
 
             final TagFlag tagFlag;
             if (getChildCount() <= i) {
-                tagFlag = createTagFlag();
+                tagFlag = createTagFlag(i == 0);
                 addView(tagFlag);
             } else {
                 tagFlag = (TagFlag) getChildAt(i);
@@ -123,15 +131,21 @@ public class TagFlagContainer extends LinearLayout {
         }
     }
 
-    private TagFlag createTagFlag() {
-        final LinearLayout.LayoutParams tagLayoutParams = new LinearLayout.LayoutParams(
-                tagWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-        tagLayoutParams.setMargins(tagMargin, 0, 0, 0);
+    private TagFlag createTagFlag(boolean first) {
+        final LayoutParams tagLayoutParams = createFlagLayoutParams(first);
 
         final TagFlag tagFlag = new TagFlag(getContext());
         tagFlag.setLayoutParams(tagLayoutParams);
         tagFlag.setBorderColor(flagBorderColor);
 
         return tagFlag;
+    }
+
+    @NonNull
+    private LayoutParams createFlagLayoutParams(boolean first) {
+        final LayoutParams tagLayoutParams = new LayoutParams(
+                tagWidth, ViewGroup.LayoutParams.MATCH_PARENT);
+        tagLayoutParams.setMargins(first ? 0 : tagMargin, 0, 0, 0);
+        return tagLayoutParams;
     }
 }
