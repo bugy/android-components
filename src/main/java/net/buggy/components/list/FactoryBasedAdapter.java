@@ -345,7 +345,7 @@ public class FactoryBasedAdapter<T>
         if (viewIndex >= 0) {
             notifyItemInserted(modelPosition);
 
-            notifyNeighboursRedraw(viewIndex);
+            notifyNeighboursRedraw(viewIndex, false);
         }
 
         fireDataAdded(item);
@@ -357,6 +357,7 @@ public class FactoryBasedAdapter<T>
         applyFilter();
 
         notifyItemRemoved(viewPosition);
+        notifyNeighboursRedraw(viewPosition, true);
         fireDataRemoved(row.getData());
 
         return row.getData();
@@ -433,6 +434,7 @@ public class FactoryBasedAdapter<T>
 
             shownRows.remove(index);
             notifyItemRemoved(index);
+            notifyNeighboursRedraw(index, true);
         }
 
         fireDataRemoved(item);
@@ -496,7 +498,7 @@ public class FactoryBasedAdapter<T>
             final int position = shownRows.indexOf(row);
             if (position >= 0) {
                 notifyItemChanged(position, ChangeType.SELECTION);
-                notifyNeighboursRedraw(position);
+                notifyNeighboursRedraw(position, false);
             }
 
             fireSelectionChanged(item, selected);
@@ -517,19 +519,20 @@ public class FactoryBasedAdapter<T>
                 final int anotherRowIndex = shownRows.indexOf(anotherRow);
                 if (anotherRowIndex >= 0) {
                     notifyItemChanged(anotherRowIndex, ChangeType.SELECTION);
-                    notifyNeighboursRedraw(anotherRowIndex);
+                    notifyNeighboursRedraw(anotherRowIndex, false);
                 }
             }
         }
     }
 
-    private void notifyNeighboursRedraw(int rowIndex) {
+    private void notifyNeighboursRedraw(int rowIndex, boolean rowDeleted) {
         if (rowIndex > 0) {
             notifyItemChanged(rowIndex - 1, ChangeType.REDRAW);
         }
 
-        if (rowIndex < (shownRows.size() - 1)) {
-            notifyItemChanged(rowIndex + 1, ChangeType.REDRAW);
+        int nextRowIndex = rowDeleted ? rowIndex : rowIndex + 1;
+        if (nextRowIndex < shownRows.size()) {
+            notifyItemChanged(nextRowIndex, ChangeType.REDRAW);
         }
     }
 
