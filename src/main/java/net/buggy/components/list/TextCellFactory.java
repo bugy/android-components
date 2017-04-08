@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import net.buggy.components.ViewFactory;
 import net.buggy.components.ViewUtils;
 
 import java.util.LinkedHashMap;
@@ -42,7 +43,8 @@ public class TextCellFactory<T> extends CellFactory<T, TextView> {
 
     @Override
     public TextView createEmptyCell(Context context, ViewGroup parent) {
-        TextView view = new TextView(context);
+        final TextView view = ViewFactory.createTextView(context);
+
         view.setId((int) System.currentTimeMillis());
 
         final ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(

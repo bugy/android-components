@@ -49,7 +49,7 @@ public class MenuCellFactory extends CellFactory<MenuCellFactory.Item, LinearLay
         final Item item = cell.getData();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            final RippleDrawable drawable = getPressedRippleDrawable(pressedColor);
+            final Drawable drawable = getPressedRippleDrawable(pressedColor);
             ViewUtils.setBackground(view, drawable);
         } else {
             final StateListDrawable stateListDrawable = getPressedDrawable(pressedColor);
@@ -72,7 +72,7 @@ public class MenuCellFactory extends CellFactory<MenuCellFactory.Item, LinearLay
 
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private static RippleDrawable getPressedRippleDrawable(int pressedColor) {
+    private static Drawable getPressedRippleDrawable(int pressedColor) {
         return new RippleDrawable(
                 ColorStateList.valueOf(pressedColor),
                 null,

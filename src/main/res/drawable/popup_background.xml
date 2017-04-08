@@ -5,7 +5,7 @@
         android:top="1dp"
         android:left="2dp"
         android:bottom="3dp">
-        <color android:color="?attr/colorBackgroundFloating" />
+        <color android:color="@color/color_floating_background" />
     </item>
     <item android:drawable="@android:drawable/editbox_dropdown_light_frame" />
 </layer-list>

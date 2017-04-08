@@ -8,6 +8,7 @@ import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -22,7 +23,10 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
 import android.os.LocaleList;
+import android.support.annotation.ColorRes;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
@@ -32,6 +36,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
@@ -190,22 +195,25 @@ public class ViewUtils {
     }
 
     public static void addFont(Context context, String familyName, String fontFilename) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            return; // fontFamilies are not supported in styles
+        }
 
         final Typeface customFontTypeface = Typeface.createFromAsset(context.getAssets(), fontFilename);
 
-        try {
-            final Field staticField = Typeface.class
-                    .getDeclaredField("sSystemFontMap");
-            staticField.setAccessible(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                final Field staticField = Typeface.class
+                        .getDeclaredField("sSystemFontMap");
+                staticField.setAccessible(true);
 
-            Map<String, Typeface> map = (Map<String, Typeface>) staticField.get(null);
-            map.put(familyName.toLowerCase(), customFontTypeface);
+                Map<String, Typeface> map = (Map<String, Typeface>) staticField.get(null);
+                map.put(familyName.toLowerCase(), customFontTypeface);
 
-            staticField.set(null, map);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e.getMessage(), e);
+                staticField.set(null, map);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
     }
 
@@ -304,5 +312,22 @@ public class ViewUtils {
             locale = context.getResources().getConfiguration().locale;
         }
         return locale;
+    }
+
+    public static void setColorListTint(ImageView imageView, @ColorRes int colorListId) {
+        final Drawable drawable = DrawableCompat.wrap(imageView.getDrawable());
+        imageView.setImageDrawable(drawable);
+
+        final ColorStateList colorStateList =
+                ContextCompat.getColorStateList(imageView.getContext(), colorListId);
+        DrawableCompat.setTintList(drawable, colorStateList);
+    }
+
+    public static void setTint(ImageView imageView, int tintColor) {
+        final Drawable wrappedDrawable = DrawableCompat.wrap(imageView.getDrawable());
+        imageView.setImageDrawable(wrappedDrawable);
+        final int color = resolveColor(tintColor, imageView.getContext());
+
+        DrawableCompat.setTint(wrappedDrawable, color);
     }
 }
