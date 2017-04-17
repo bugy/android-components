@@ -35,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -329,5 +330,29 @@ public class ViewUtils {
         final int color = resolveColor(tintColor, imageView.getContext());
 
         DrawableCompat.setTint(wrappedDrawable, color);
+    }
+
+    public static void setDrawableTint(Button button, int tintColor) {
+        final int color = resolveColor(tintColor, button.getContext());
+
+        final Drawable[] compoundDrawables = button.getCompoundDrawables();
+        for (int i = 0; i < compoundDrawables.length; i++) {
+            Drawable compoundDrawable = compoundDrawables[i];
+
+            if (compoundDrawable == null) {
+                continue;
+            }
+
+            final Drawable wrappedDrawable = DrawableCompat.wrap(compoundDrawable);
+            compoundDrawables[i] = wrappedDrawable;
+
+            DrawableCompat.setTint(wrappedDrawable, color);
+        }
+
+        button.setCompoundDrawables(
+                compoundDrawables[0],
+                compoundDrawables[1],
+                compoundDrawables[2],
+                compoundDrawables[3]);
     }
 }
