@@ -7,7 +7,10 @@ import android.view.ViewGroup;
 
 import com.android.internal.util.Predicate;
 import com.google.common.base.Objects;
+import com.google.common.collect.BiMap;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FactoryBasedAdapter<T>
         extends RecyclerView.Adapter<FactoryBasedAdapter.ViewHolder> {
@@ -26,7 +30,9 @@ public class FactoryBasedAdapter<T>
     private final static int MAIN_VIEW_TYPE = 0;
 
     private final CellFactory<T, View> defaultFactory;
-    private final List<CellFactory<T, View>> customFactories = new CopyOnWriteArrayList<>();
+    private final BiMap<CellFactory<T, View>, Integer> customFactories = Maps.synchronizedBiMap(
+            HashBiMap.<CellFactory<T, View>, Integer>create());
+    private AtomicInteger customFactoryCounter = new AtomicInteger();
 
     private final List<Row<T>> rows = new CopyOnWriteArrayList<>();
 
@@ -80,7 +86,7 @@ public class FactoryBasedAdapter<T>
         final CellFactory<T, View> customFactory = getCustomFactory(viewPosition);
 
         if (customFactory != null) {
-            return 1 + customFactories.indexOf(customFactory);
+            return 1 + customFactories.get(customFactory);
         }
 
         return MAIN_VIEW_TYPE;
@@ -90,7 +96,7 @@ public class FactoryBasedAdapter<T>
     public FactoryBasedAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         CellFactory<T, View> customFactory = null;
         if (viewType != MAIN_VIEW_TYPE) {
-            customFactory = customFactories.get(viewType - 1);
+            customFactory = customFactories.inverse().get(viewType - 1);
         }
 
         final CellFactory<T, View> cellFactory = (customFactory != null) ? customFactory : defaultFactory;
@@ -595,27 +601,18 @@ public class FactoryBasedAdapter<T>
     }
 
     public void setCustomFactory(CellFactory<T, View> newFactory, int viewPosition) {
+        final int factoryId = customFactoryCounter.addAndGet(1);
+
         final Row<T> row = shownRows.get(viewPosition);
 
         final CellFactory<T, View> existingFactory = row.getCustomCellFactory();
 
 
         if (existingFactory != null) {
-            int index = customFactories.indexOf(existingFactory);
-
-            if (index >= 0) {
-                customFactories.set(index, newFactory);
-            }
-
-        } else if (newFactory != null) {
-            int nullIndex = customFactories.indexOf(null);
-
-            if (nullIndex >= 0) {
-                customFactories.set(nullIndex, newFactory);
-            } else {
-                customFactories.add(newFactory);
-            }
+            customFactories.remove(existingFactory);
         }
+
+        customFactories.put(newFactory, factoryId);
 
         row.setCustomCellFactory(newFactory);
 
