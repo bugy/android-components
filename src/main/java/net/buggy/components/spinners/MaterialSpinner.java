@@ -1,7 +1,9 @@
 package net.buggy.components.spinners;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
@@ -108,6 +110,18 @@ public class MaterialSpinner<T> extends FrameLayout {
 
         final PopupWindow popupWindow = new PopupWindow(popupContent);
         popupWindow.setHeight(WRAP_CONTENT);
+
+        //noinspection deprecation
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true);
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                textField.clearFocus();
+            }
+        });
 
         listAdapter.addClickListener(new FactoryBasedAdapter.ClickListener<T>() {
             @Override
