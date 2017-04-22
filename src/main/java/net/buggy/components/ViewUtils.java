@@ -315,6 +315,18 @@ public class ViewUtils {
         return locale;
     }
 
+    @SuppressWarnings("deprecation")
+    public static Locale getSystemLocale() {
+        Locale locale;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            locale = Resources.getSystem().getConfiguration().getLocales().get(0);
+        } else {
+            locale = Resources.getSystem().getConfiguration().locale;
+        }
+
+        return locale;
+    }
+
     public static void setColorListTint(ImageView imageView, @ColorRes int colorListId) {
         final Drawable drawable = DrawableCompat.wrap(imageView.getDrawable());
         final ColorStateList colorStateList =
