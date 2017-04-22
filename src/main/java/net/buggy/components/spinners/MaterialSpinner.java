@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +16,8 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.AttributeSet;
+import android.util.SparseArray;
+import android.view.AbsSavedState;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +53,8 @@ public class MaterialSpinner<T> extends FrameLayout {
 
     private List<T> values = new ArrayList<>();
     private EditText textField;
+
+    private boolean showNullValue = false;
 
     public MaterialSpinner(@NonNull Context context) {
         super(context);
@@ -149,7 +155,32 @@ public class MaterialSpinner<T> extends FrameLayout {
                 }
             }
         });
+    }
 
+    @Override
+    protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
+        final Parcelable parcelable = container.get(getId());
+
+        if (parcelable instanceof SpinnerState) {
+            final int selectedIndex = ((SpinnerState) parcelable).getSelectedIndex();
+
+            final T item;
+            if ((selectedIndex >= 0) && (selectedIndex < values.size())) {
+                item = values.get(selectedIndex);
+            } else {
+                item = null;
+            }
+
+            selectItem(item);
+        }
+    }
+
+    @Override
+    protected void dispatchSaveInstanceState(SparseArray<Parcelable> container) {
+        SpinnerState state = new SpinnerState(
+                selectedItem != null ? values.indexOf(selectedItem) : -1);
+
+        container.put(getId(), state);
     }
 
     private void selectItem(T item) {
@@ -159,7 +190,11 @@ public class MaterialSpinner<T> extends FrameLayout {
         listAdapter.addAll(this.values);
 
         if (item == null) {
-            textField.setText("");
+            if (showNullValue) {
+                textField.setText(nullString);
+            } else {
+                textField.setText("");
+            }
         } else {
             textField.setText(stringify(item));
         }
@@ -225,6 +260,45 @@ public class MaterialSpinner<T> extends FrameLayout {
 
         if (selectedItem != null) {
             textField.setText(stringify(selectedItem));
+        }
+    }
+
+    public void setShowNullValue(boolean showNullValue) {
+        this.showNullValue = showNullValue;
+
+        if (selectedItem == null) {
+            if (showNullValue) {
+                textField.setText(nullString);
+            } else {
+                textField.setText("");
+            }
+        }
+    }
+
+    private static class SpinnerState extends BaseSavedState {
+
+        private final int selectedIndex;
+
+        public SpinnerState(int selectedIndex) {
+            super(AbsSavedState.EMPTY_STATE);
+
+            this.selectedIndex = selectedIndex;
+        }
+
+        public SpinnerState(Parcel source) {
+            super(source);
+
+            selectedIndex = source.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(selectedIndex);
+        }
+
+        public int getSelectedIndex() {
+            return selectedIndex;
         }
     }
 
