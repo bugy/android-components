@@ -317,11 +317,11 @@ public class ViewUtils {
 
     public static void setColorListTint(ImageView imageView, @ColorRes int colorListId) {
         final Drawable drawable = DrawableCompat.wrap(imageView.getDrawable());
-        imageView.setImageDrawable(drawable);
-
         final ColorStateList colorStateList =
                 ContextCompat.getColorStateList(imageView.getContext(), colorListId);
         DrawableCompat.setTintList(drawable, colorStateList);
+
+        imageView.setImageDrawable(drawable);
     }
 
     public static void setTint(ImageView imageView, int tintColor) {
